@@ -37,16 +37,10 @@ class BaseModel(metaclass=MetaModel):
 
 AbstractModel = BaseModel
 
-class DjangoModel(metaclass=Meta):
-    pass
 
 class Model(AbstractModel):
     pass
 
-class DjangoSale(DjangoModel):
-    @one
-    def djangosalefunc(self):
-        return 'djangosalefunc'
 
 class Sale(Model):
 
