@@ -1,24 +1,28 @@
+INHERITED_ATTRS  =  ('_returns', )
+
 class Meta(type):
 
-  def __new__(metaclass, name, bases, namespace):
-    # print('Meta __new__ parent name',name, ' bases:',  bases)
-    for key,  value in namespace.items():
-      if hasattr(value, '_api'):
-        print('------------------------------------', value)
-    print('namespace', namespace)
-    # print('\n')
-    return type.__new__(metaclass, name, bases, namespace)
+    def __new__(meta, name, bases, attrs):
+        parent = type.__new__(meta, name, bases, {})
+        print('&&&&&&&&&&&&&&&&&&&&&&&&&&&')
+        for key, value in attrs.items():
+            if not key.startswith('__') and callable(value):
+                value = propagate(getattr(parent, key, None), value)
+                attrs[key] = value
+                print('key:', key, 'value ', value)
 
+        return type.__new__(meta, name, bases, attrs)
+def attrsetter(attr, value):
+    return lambda method: setattr(method, attr, value) or method
 
-  def addedfrommeta(cls):
-    print(cls.__dict__)
-    return cls.__name__
+def propagate(method1, method2):
 
-class MetaModel(Meta):
-    def __init__(self, name, bases, attrs):
-        if not self._register:
-            self._register = True
-            super(MetaModel, self).__init__(name, bases, attrs)
+    if method1:
+        for attr in INHERITED_ATTRS:
+            if hasattr(method1, attr) and not hasattr(method2, attr):
+                setattr(method2, attr, getattr(method1, attr))
+    return method2
+
 
 def multi(method):
     method._api = 'multi'
@@ -26,3 +30,22 @@ def multi(method):
 def one(method):
     method._api = 'one'
     return method
+
+class MyBaseModel(metaclass=Meta):
+    _inherit = None
+    _inherits = {}
+
+    @classmethod
+    def _build_model(cls):
+        print('cls: ', cls)
+
+AbstractModel = MyBaseModel
+class MyModel(AbstractModel):
+    def my_model_fuc(self):
+        return 'my_model_func'
+
+class Product(MyModel):
+    def product_func(self):
+        return 'product_func'
+
+
