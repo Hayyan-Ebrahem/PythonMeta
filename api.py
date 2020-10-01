@@ -4,7 +4,6 @@ class Meta(type):
 
     def __new__(meta, name, bases, attrs):
         parent = type.__new__(meta, name, bases, {})
-        print('&&&&&&&&&&&&&&&&&&&&&&&&&&&')
         for key, value in attrs.items():
             if not key.startswith('__') and callable(value):
                 value = propagate(getattr(parent, key, None), value)
